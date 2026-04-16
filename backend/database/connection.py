@@ -23,7 +23,7 @@ def _build_engine():
     # ── Turso (libSQL) in production ───────────────────────────────────────
     # Turso URLs look like: libsql://your-db.turso.io
     if url.startswith("libsql://") or url.startswith("https://"):
-        from libsql_experimental import create_client  # noqa: F401
+        from libsql_client import create_client  # noqa: F401
         # SQLAlchemy does not natively support libsql; use the libsql driver URL format
         connect_url = url.replace("libsql://", "sqlite+libsql://", 1)
         return create_async_engine(
