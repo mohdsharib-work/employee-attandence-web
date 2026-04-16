@@ -1,10 +1,3 @@
-# ─────────────────────────────────────────────
-#  backend/database/connection.py
-#  Async SQLAlchemy engine configured for:
-#    - Turso (libSQL) in production
-#    - Local SQLite file in development
-# ─────────────────────────────────────────────
-
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
@@ -20,11 +13,10 @@ def _build_engine():
     url = settings.DATABASE_URL
     token = settings.DATABASE_AUTH_TOKEN
 
-    # ── Turso (libSQL) in production ───────────────────────────────────────
-    # Turso URLs look like: libsql://your-db.turso.io
+    # ── Turso (libSQL) in production ──────────────────────────────────────
+    # sqlalchemy-libsql registers the sqlite+libsql dialect automatically
+    # Your Turso URL should be: libsql://your-db.turso.io
     if url.startswith("libsql://") or url.startswith("https://"):
-        from libsql_experimental.async_ import create_client  # noqa: F401
-        # SQLAlchemy does not natively support libsql; use the libsql driver URL format
         connect_url = url.replace("libsql://", "sqlite+libsql://", 1)
         return create_async_engine(
             connect_url,
@@ -32,12 +24,9 @@ def _build_engine():
             echo=settings.DEBUG,
         )
 
-    # ── Local SQLite file (development) ────────────────────────────────────
-    # DATABASE_URL examples:
-    #   file:./attendance.db   →  relative path
-    #   file:/abs/path/db      →  absolute path
+    # ── Local SQLite file (development) ───────────────────────────────────
     if url.startswith("file:"):
-        path = url[5:]          # strip the "file:" prefix
+        path = url[5:]
         sqlite_url = f"sqlite+aiosqlite:///{path}"
         return create_async_engine(
             sqlite_url,
@@ -45,7 +34,7 @@ def _build_engine():
             connect_args={"check_same_thread": False},
         )
 
-    # ── Fallback: pass the URL through as-is ───────────────────────────────
+    # ── Fallback ───────────────────────────────────────────────────────────
     return create_async_engine(url, echo=settings.DEBUG)
 
 
@@ -65,7 +54,6 @@ class Base(DeclarativeBase):
 
 
 async def create_tables():
-    """Create all tables on startup. Use Alembic migrations for schema changes."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
