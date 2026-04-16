@@ -51,16 +51,15 @@ if _USE_TURSO:
 
         async def __aenter__(self):
             self._conn = _get_turso_conn()
-            await self._conn.__aenter__()
-            return self
+        return self
 
         async def __aexit__(self, exc_type, exc, tb):
-            await self._conn.__aexit__(exc_type, exc, tb)
+            self._conn.close()
 
         async def execute(self, statement, params=None):
             # Accept SQLAlchemy text() or raw string
             sql = str(statement)
-            return await self._conn.execute(sql, params or [])
+            return self._conn.execute(sql, params or [])
 
         async def commit(self):
             await self._conn.commit()
@@ -95,6 +94,20 @@ if _USE_TURSO:
                     f"CREATE TABLE IF NOT EXISTS {table.name} "
                     f"({', '.join(str(c.compile()) for c in table.columns)});"
                 )
+
+    async def create_tables():
+        """Create all tables using raw DDL via libsql."""
+        conn = _get_turso_conn()
+        try:
+             from database import models  # ensure models are loaded 
+             for table in Base.metadata.sorted_tables:
+             await conn.execute(
+                 f"CREATE TABLE IF NOT EXISTS {table.name} "
+                 f"({', '.join(str(c.compile()) for c in table.columns)});"
+             )
+            await conn.commit()
+        finally:
+            conn.close()
 
     async def get_db() -> AsyncGenerator[_TursoSession, None]:
         session = _TursoSession()
