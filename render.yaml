@@ -1,0 +1,36 @@
+# ─────────────────────────────────────────────
+#  render.yaml  —  Render Blueprint
+#  Docs: https://render.com/docs/blueprint-spec
+# ─────────────────────────────────────────────
+
+services:
+  - type: web
+    name: face-attendance-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    plan: free
+
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+
+      - key: DEBUG
+        value: "false"
+
+      # ── Set these manually in Render dashboard ──
+      - key: DATABASE_URL
+        sync: false        # libsql://your-db.turso.io  OR  file:./attendance.db
+
+      - key: DATABASE_AUTH_TOKEN
+        sync: false        # Turso token (leave blank if using file:// SQLite)
+
+      - key: SECRET_KEY
+        generateValue: true   # Render auto-generates a secure value
+
+      - key: DESKTOP_API_KEY
+        sync: false
+
+      - key: ALLOWED_ORIGINS
+        sync: false        # ["https://your-app.vercel.app"]
