@@ -25,6 +25,7 @@ _USE_TURSO = _url.startswith("libsql://") or _url.startswith("https://")
 # ─────────────────────────────────────────────
 if _USE_TURSO:
     import libsql_experimental as libsql
+    from sqlalchemy.schema import CreateTable
 
     def _get_turso_conn():
         return libsql.connect(
@@ -63,16 +64,20 @@ if _USE_TURSO:
     async def create_tables():
         conn = _get_turso_conn()
         try:
-            # Ensure models are loaded
+            # Load models so metadata is registered
             import models.user
             import models.employee
             import models.attendance
 
+            # Use SQLAlchemy DDL generator (SAFE)
             for table in Base.metadata.sorted_tables:
-                conn.execute(
-                    f"CREATE TABLE IF NOT EXISTS {table.name} "
-                    f"({', '.join(str(c.compile()) for c in table.columns)});"
+                ddl = str(
+                    CreateTable(table).compile(
+                        compile_kwargs={"literal_binds": True}
+                    )
                 )
+                ddl = ddl.replace("CREATE TABLE", "CREATE TABLE IF NOT EXISTS")
+                conn.execute(ddl)
 
             conn.commit()
 
