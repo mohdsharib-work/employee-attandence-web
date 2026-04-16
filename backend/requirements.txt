@@ -10,8 +10,8 @@ uvicorn[standard]>=0.29.0
 sqlalchemy>=2.0.0
 aiosqlite>=0.20.0
 
-# Turso / libSQL driver (production database)
-libsql-experimental>=0.0.28
+# Turso / libSQL dialect for SQLAlchemy (production)
+sqlalchemy-libsql>=0.1.0
 
 # Settings + validation
 pydantic>=2.7.0
