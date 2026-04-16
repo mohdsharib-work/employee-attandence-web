@@ -11,7 +11,7 @@ sqlalchemy>=2.0.0
 aiosqlite>=0.20.0
 
 # Turso / libSQL driver (production database)
-libsql-experimental>=0.0.28
+libsql-client>=0.3.0
 
 # Settings + validation
 pydantic>=2.7.0
