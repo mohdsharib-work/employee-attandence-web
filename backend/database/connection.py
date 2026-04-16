@@ -62,27 +62,9 @@ if _USE_TURSO:
     engine = None
 
     async def create_tables():
-        conn = _get_turso_conn()
-        try:
-            # Load models so metadata is registered
-            import models.user
-            import models.employee
-            import models.attendance
-
-            # Use SQLAlchemy DDL generator (SAFE)
-            for table in Base.metadata.sorted_tables:
-                ddl = str(
-                    CreateTable(table).compile(
-                        compile_kwargs={"literal_binds": True}
-                    )
-                )
-                ddl = ddl.replace("CREATE TABLE", "CREATE TABLE IF NOT EXISTS")
-                conn.execute(ddl)
-
-            conn.commit()
-
-        finally:
-            conn.close()
+        # 🚀 Disable auto table creation for Turso (prevents crash)
+        # Tables should be created manually or via migration
+        return
 
     async def get_db() -> AsyncGenerator[_TursoSession, None]:
         session = _TursoSession()
